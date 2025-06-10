@@ -1,0 +1,124 @@
+﻿# This is an example mods.toml file. It contains the data relating to the loading mods.
+# There are several mandatory fields (#mandatory), and many more that are optional (#optional).
+# The overall format is standard TOML format, v0.5.0.
+# Note that there are a couple of TOML lists in this file.
+# Find more information on toml format here:  https://github.com/toml-lang/toml
+# The name of the mod loader type to load - for regular FML @Mod mods it should be javafml
+modLoader="javafml" #mandatory
+# A version range to match for said mod loader - for regular FML @Mod it will be the forge version
+loaderVersion="[47,)" #mandatory This is typically bumped every Minecraft version by Forge. See our download page for lists of versions.
+# The license for you mod. This is mandatory metadata and allows for easier comprehension of your redistributive properties.
+# Review your options at https://choosealicense.com/. All rights reserved is the default copyright stance, and is thus the default here.
+license="All Rights Reserved"
+# A URL to refer people to when problems occur with this mod
+#issueTrackerURL="https://change.me.to.your.issue.tracker.example.invalid/" #optional
+# If your mod is purely client-side and has no multiplayer functionality (be it dedicated servers or Open to LAN),
+# set this to true, and Forge will set the correct displayTest for you and skip loading your mod on dedicated servers.
+#clientSideOnly=true #optional - defaults to false if absent
+# A list of mods - how many allowed here is determined by the individual mod loader
+[[mods]] #mandatory
+# The modid of the mod
+modId="enhancedzombies" #mandatory
+# The version number of the mod
+version="1.0.0" #mandatory
+# A display name for the mod
+displayName="Enhanced Zombies | 澧炲己鍍靛案" #mandatory
+# A URL to query for updates for this mod. See the JSON update specification https://docs.minecraftforge.net/en/latest/misc/updatechecker/
+#updateJSONURL="https://change.me.example.invalid/updates.json" #optional
+# A URL for the "homepage" for this mod, displayed in the mod UI
+#displayURL="https://change.me.to.your.mods.homepage.example.invalid/" #optional
+# A file name (in the root of the mod JAR) containing a logo for display
+#logoFile="examplemod.png" #optional
+# A text field displayed in the mod UI
+#credits="" #optional
+# A text field displayed in the mod UI
+authors="鏈ㄦ湪宸ヤ綔瀹?| MuMu Studio" #optional
+# Display Test controls the display for your mod in the server connection screen
+# MATCH_VERSION means that your mod will cause a red X if the versions on client and server differ. This is the default behaviour and should be what you choose if you have server and client elements to your mod.
+# IGNORE_SERVER_VERSION means that your mod will not cause a red X if it's present on the server but not on the client. This is what you should use if you're a server only mod.
+# IGNORE_ALL_VERSION means that your mod will not cause a red X if it's present on the client or the server. This is a special case and should only be used if your mod has no server component.
+# NONE means that no display test is set on your mod. You need to do this yourself, see IExtensionPoint.DisplayTest for more information. You can define any scheme you wish with this value.
+# IMPORTANT NOTE: this is NOT an instruction as to which environments (CLIENT or DEDICATED SERVER) your mod loads on. Your mod should load (and maybe do nothing!) whereever it finds itself.
+#displayTest="MATCH_VERSION" # if nothing is specified, MATCH_VERSION is the default when clientSideOnly=false, otherwise IGNORE_ALL_VERSION when clientSideOnly=true (#optional)
+
+# The description text for the mod (multi line!) (#mandatory)
+description='''
+=== Enhanced Zombies | 澧炲己鍍靛案妯＄粍 ===
+
+銆怑nglish Description銆?Enhanced Zombies is an advanced AI modification that transforms ordinary zombies into intelligent, strategic threats. This mod introduces sophisticated zombie behaviors including:
+
+馃 Smart AI System:
+鈥?5-tier intelligence levels with adaptive learning
+鈥?Advanced pathfinding and tactical decision-making
+鈥?Dynamic target prioritization (Villagers > Iron Golems > Players)
+
+鈿旓笍 Legion Warfare:
+鈥?Coordinated group attacks with 5-15 zombies per legion
+鈥?Legion commanders with enhanced abilities and equipment
+鈥?30-second warning system before legion assaults
+鈥?Strategic spawn positioning (40-80 blocks from players)
+
+馃彈锔?Construction & Destruction:
+鈥?Intelligent block breaking to reach targets
+鈥?Tactical building abilities for strategic advantages
+鈥?Terrain adaptation and obstacle navigation
+
+馃洝锔?Advanced Combat:
+鈥?Dual combat modes: melee and ranged attacks
+鈥?Equipment scaling based on intelligence levels
+鈥?Special effects for legion commanders
+鈥?Balanced damage system with configurable multipliers
+
+馃幃 Server Features:
+鈥?5-minute grace period for new players
+鈥?Configurable spawn rates and legion sizes
+鈥?Multi-language support (English/Chinese)
+鈥?Performance-optimized for multiplayer servers
+
+銆愪腑鏂囦粙缁嶃€?澧炲己鍍靛案鏄竴涓珮绾I妯＄粍锛屽皢鏅€氬兊灏歌浆鍙樹负鏅鸿兘鐨勬垬鐣ュ▉鑳併€傛湰妯＄粍寮曞叆浜嗗鏉傜殑鍍靛案琛屼负绯荤粺锛?
+馃 鏅鸿兘AI绯荤粺锛?鈥?5绾ф櫤鑳界瓑绾э紝鍏峰鑷€傚簲瀛︿範鑳藉姏
+鈥?楂樼骇瀵昏矾鍜屾垬鏈喅绛栫郴缁?鈥?鍔ㄦ€佺洰鏍囦紭鍏堢骇锛堟潙姘?> 閾佸個鍎?> 鐜╁锛?
+鈿旓笍 鍐涘洟浣滄垬锛?鈥?5-15鍙兊灏哥殑鍗忚皟缇や綋鏀诲嚮
+鈥?鎷ユ湁澧炲己鑳藉姏鍜岃澶囩殑鍐涘洟闀?鈥?鍐涘洟鏀诲嚮鍓?0绉掗璀︾郴缁?鈥?鎴樼暐鐢熸垚浣嶇疆锛堣窛绂荤帺瀹?0-80鏍硷級
+
+馃彈锔?寤洪€犱笌鐮村潖锛?鈥?鏅鸿兘鐮村潖鏂瑰潡浠ュ埌杈剧洰鏍?鈥?鎴樻湳寤洪€犺兘鍔涜幏寰楁垬鐣ヤ紭鍔?鈥?鍦板舰閫傚簲鍜岄殰纰嶅鑸?
+馃洝锔?楂樼骇鎴樻枟锛?鈥?鍙岄噸鎴樻枟妯″紡锛氳繎鎴樺拰杩滅▼鏀诲嚮
+鈥?鍩轰簬鏅鸿兘绛夌骇鐨勮澶囩缉鏀?鈥?鍐涘洟闀跨壒娈婃晥鏋?鈥?骞宠　鐨勪激瀹崇郴缁燂紝鍙厤缃€嶆暟
+
+馃幃 鏈嶅姟鍣ㄥ姛鑳斤細
+鈥?鏂扮帺瀹?鍒嗛挓淇濇姢鏈?鈥?鍙厤缃殑鐢熸垚鐜囧拰鍐涘洟瑙勬ā
+鈥?澶氳瑷€鏀寔锛堣嫳鏂?涓枃锛?鈥?閽堝澶氫汉鏈嶅姟鍣ㄧ殑鎬ц兘浼樺寲
+
+浣滆€咃細鏈ㄦ湪宸ヤ綔瀹?| Author: MuMu Studio
+鐗堟湰锛?.0.0 | Version: 1.0.0
+閫傜敤浜?Minecraft 1.20.1 + Forge 47.x
+'''
+# A dependency - use the . to indicate dependency for a specific modid. Dependencies are optional.
+[[dependencies.enhancedzombies]] #optional
+    # the modid of the dependency
+    modId="forge" #mandatory
+    # Does this dependency have to exist - if not, ordering below must be specified
+    mandatory=true #mandatory
+    # The version range of the dependency
+    versionRange="[47,)" #mandatory
+    # An ordering relationship for the dependency - BEFORE or AFTER required if the dependency is not mandatory
+    # BEFORE - This mod is loaded BEFORE the dependency
+    # AFTER - This mod is loaded AFTER the dependency
+    ordering="NONE"
+    # Side this dependency is applied on - BOTH, CLIENT, or SERVER
+    side="BOTH"
+# Here's another dependency
+[[dependencies.enhancedzombies]]
+    modId="minecraft"
+    mandatory=true
+    # This version range declares a minimum of the current minecraft version up to but not including the next major version
+    versionRange="[1.20.1,1.21)"
+    ordering="NONE"
+    side="BOTH"
+
+# Features are specific properties of the game environment, that you may want to declare you require. This example declares
+# that your mod requires GL version 3.2 or higher. Other features will be added. They are side aware so declaring this won't
+# stop your mod loading on the server for example.
+#[features.enhancedzombies]
+#openGLVersion="[3.2,)"
+
