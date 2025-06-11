@@ -21,7 +21,7 @@
 
 ### 👥 军团系统 | Legion System
 - **协调攻击** | Coordinated Attacks: 多个僵尸协同作战
-- **可配置军团大小** | Configurable Legion Size: 自定义军团规模（默认3-8只）
+- **可配置军团大小** | Configurable Legion Size: 自定义军团规模（默认10-30只）
 - **动态生成间隔** | Dynamic Spawn Intervals: 可调节的生成频率
 - **战术分工** | Tactical Division: 不同僵尸承担不同角色
 
