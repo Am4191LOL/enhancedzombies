@@ -500,7 +500,8 @@ public class ZombieBuildBlockGoal extends Goal {
     
     /**
      * 检查是否需要建造来攻击目标
-     * 根据目标高度差和距离来判断
+     * 算法：智能分析地形障碍和战术需求
+     * 优化：优先考虑路径中断和高度差问题
      */
     private boolean 需要建造来攻击目标() {
         LivingEntity 目标 = 僵尸.getTarget();
@@ -511,18 +512,23 @@ public class ZombieBuildBlockGoal extends Goal {
         double 水平距离 = Math.sqrt(Math.pow(目标位置.x - 僵尸位置.x, 2) + Math.pow(目标位置.z - 僵尸位置.z, 2));
         double 高度差 = 目标位置.y - 僵尸位置.y;
         
-        // 如果目标在高处且距离适中，考虑建造攻击平台
-        if (高度差 >= 2.0 && 水平距离 <= 8.0 && 水平距离 >= 3.0) {
+        // 情况1：路径中有深坑或水体需要搭桥 - 优先级最高
+        if (检查路径中断需要搭桥()) {
             return true;
         }
         
-        // 如果有深坑或水体阻挡，考虑建造桥梁
-        if (检查是否需要桥梁(僵尸位置, 目标位置)) {
+        // 情况2：目标在高处无法到达，需要搭建攀爬路径
+        if (检查需要攀爬路径(高度差, 水平距离)) {
             return true;
         }
         
-        // 如果僵尸生命值较低且有敌人，考虑建造防御工事
-        if (僵尸.getHealth() < 僵尸.getMaxHealth() * 0.4 && 水平距离 <= 6.0) {
+        // 情况3：僵尸脚下不稳定，需要搭建稳固平台
+        if (检查需要稳固平台()) {
+            return true;
+        }
+        
+        // 情况4：战术性建造 - 获得攻击优势
+        if (检查战术建造需求(高度差, 水平距离)) {
             return true;
         }
         
@@ -530,37 +536,128 @@ public class ZombieBuildBlockGoal extends Goal {
     }
     
     /**
-     * 检查是否需要建造桥梁
+     * 检查路径是否中断需要搭桥
+     * 算法：分析从僵尸到目标的路径上是否有无法通过的障碍
      */
-    private boolean 检查是否需要桥梁(Vec3 起点, Vec3 终点) {
+    private boolean 检查路径中断需要搭桥() {
+        if (僵尸.getTarget() == null) return false;
+        
+        Vec3 起点 = 僵尸.position();
+        Vec3 终点 = 僵尸.getTarget().position();
         Vec3 方向 = 终点.subtract(起点).normalize();
         double 总距离 = 起点.distanceTo(终点);
         
-        // 检查路径上是否有深坑或水体
+        // 检查路径上是否有需要搭桥的障碍
         for (double d = 1.0; d < 总距离 && d < 8.0; d += 1.0) {
             Vec3 检查点 = 起点.add(方向.scale(d));
-            BlockPos 脚下位置 = new BlockPos((int)检查点.x, (int)检查点.y - 1, (int)检查点.z);
+            BlockPos 当前位置 = new BlockPos((int)检查点.x, (int)检查点.y, (int)检查点.z);
+            BlockPos 脚下位置 = 当前位置.below();
+            
+            // 检查脚下是否有支撑
             BlockState 脚下方块 = 世界.getBlockState(脚下位置);
             
-            // 检查是否是水或空气（深坑）
-            if (脚下方块.isAir() || 脚下方块.getFluidState().isSource()) {
-                // 检查深度
-                int 深度 = 0;
-                for (int y = 脚下位置.getY(); y > 脚下位置.getY() - 5 && y > 世界.getMinBuildHeight(); y--) {
-                    BlockPos 检查深度位置 = new BlockPos(脚下位置.getX(), y, 脚下位置.getZ());
-                    if (世界.getBlockState(检查深度位置).isAir()) {
-                        深度++;
-                    } else {
-                        break;
-                    }
-                }
+            // 如果脚下是空气、水或岩浆，需要搭桥
+            if (脚下方块.isAir() || 
+                脚下方块.getFluidState().isSource() || 
+                脚下方块.getFluidState().getType().toString().contains("lava")) {
                 
-                if (深度 >= 2) {
+                // 检查深度和危险性
+                if (检查障碍深度和危险性(脚下位置)) {
                     return true;
                 }
             }
         }
         
         return false;
+    }
+    
+    /**
+     * 检查是否需要攀爬路径
+     * 算法：分析高度差和可攀爬性
+     */
+    private boolean 检查需要攀爬路径(double 高度差, double 水平距离) {
+        // 目标在高处且距离适中，考虑搭建攀爬路径
+        if (高度差 >= 2.0 && 高度差 <= 6.0 && 水平距离 <= 8.0 && 水平距离 >= 2.0) {
+            // 检查是否有自然路径可以到达
+            if (!检查是否有自然攀爬路径()) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * 检查是否需要稳固平台
+     * 算法：检查僵尸当前位置的稳定性
+     */
+    private boolean 检查需要稳固平台() {
+        BlockPos 僵尸位置 = 僵尸.blockPosition();
+        BlockPos 脚下位置 = 僵尸位置.below();
+        BlockState 脚下方块 = 世界.getBlockState(脚下位置);
+        
+        // 如果脚下不稳定（空气、水、不完整方块），需要搭建平台
+        if (脚下方块.isAir() || 
+            脚下方块.getFluidState().isSource() || 
+            !脚下方块.isSolidRender(世界, 脚下位置)) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    /**
+     * 检查战术建造需求
+     * 算法：分析战斗情况决定是否需要战术性建造
+     */
+    private boolean 检查战术建造需求(double 高度差, double 水平距离) {
+        // 如果僵尸生命值较低，考虑建造防御工事
+        if (僵尸.getHealth() < 僵尸.getMaxHealth() * 0.4 && 水平距离 <= 6.0) {
+            return true;
+        }
+        
+        // 如果目标在稍高位置，建造攻击平台获得优势
+        if (高度差 >= 1.0 && 高度差 <= 3.0 && 水平距离 <= 5.0) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    /**
+     * 检查障碍深度和危险性
+     */
+    private boolean 检查障碍深度和危险性(BlockPos 起始位置) {
+        int 深度 = 0;
+        boolean 有危险 = false;
+        
+        // 向下检查深度
+        for (int y = 起始位置.getY(); y > 起始位置.getY() - 5 && y > 世界.getMinBuildHeight(); y--) {
+            BlockPos 检查位置 = new BlockPos(起始位置.getX(), y, 起始位置.getZ());
+            BlockState 方块状态 = 世界.getBlockState(检查位置);
+            
+            if (方块状态.isAir()) {
+                深度++;
+            } else if (方块状态.getFluidState().getType().toString().contains("lava")) {
+                有危险 = true;
+                break;
+            } else {
+                break;
+            }
+        }
+        
+        // 深度超过2格或有危险需要搭桥
+        return 深度 >= 2 || 有危险;
+    }
+    
+    /**
+     * 检查是否有自然攀爬路径
+     */
+    private boolean 检查是否有自然攀爬路径() {
+        // 尝试寻路到目标，如果成功说明有自然路径
+        if (僵尸.getTarget() == null) return false;
+        
+        Vec3 目标位置 = 僵尸.getTarget().position();
+        return 僵尸.getNavigation().moveTo(目标位置.x, 目标位置.y, 目标位置.z, 1.0);
     }
 }

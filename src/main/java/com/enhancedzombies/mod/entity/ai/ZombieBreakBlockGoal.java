@@ -303,8 +303,9 @@ public class ZombieBreakBlockGoal extends Goal {
     }
     
     /**
-     * 检查是否真的需要破坏方块来到达目标
-     * 只有当目标被方块阻挡且无法绕过时才返回true
+     * 检查是否需要破坏方块来到达目标
+     * 算法：智能分析路径受阻情况和攻击需求
+     * 优化：优先考虑路径规划失败和攻击视线阻挡
      */
     private boolean 需要破坏方块到达目标() {
         LivingEntity 目标 = 僵尸.getTarget();
@@ -314,40 +315,93 @@ public class ZombieBreakBlockGoal extends Goal {
         Vec3 目标位置 = 目标.position();
         double 距离 = 僵尸位置.distanceTo(目标位置);
         
-        // 如果距离很近，不需要破坏方块
-        if (距离 <= 3.0) {
-            return false;
+        // 情况1：路径规划完全失败 - 优先级最高
+        if (检查路径规划失败(目标位置)) {
+            return true;
         }
         
-        // 检查寻路是否被完全阻挡
-        if (僵尸.getNavigation().getPath() != null && !僵尸.getNavigation().getPath().isDone()) {
-            // 如果有有效路径，不需要破坏
-            return false;
+        // 情况2：在攻击范围内但视线被阻挡 - 需要破坏阻挡方块进行攻击
+        if (距离 <= 8.0 && 检查攻击视线阻挡(僵尸位置, 目标位置)) {
+            return true;
         }
         
-        // 检查是否有直接的视线被方块阻挡
-        return 检查视线阻挡(僵尸位置, 目标位置);
+        // 情况3：路径存在但进展缓慢 - 可能有部分阻挡
+        if (检查路径进展缓慢()) {
+            return true;
+        }
+        
+        return false;
     }
     
     /**
-     * 检查从僵尸到目标的视线是否被方块阻挡
+     * 检查路径规划是否完全失败
+     * 算法：尝试寻路到目标，如果失败则需要破坏阻挡方块
      */
-    private boolean 检查视线阻挡(Vec3 起点, Vec3 终点) {
+    private boolean 检查路径规划失败(Vec3 目标位置) {
+        // 尝试计算到目标的路径
+        boolean 路径成功 = 僵尸.getNavigation().moveTo(目标位置.x, 目标位置.y, 目标位置.z, 1.0);
+        
+        // 如果路径计算失败，说明被完全阻挡
+        if (!路径成功) {
+            return true;
+        }
+        
+        // 检查当前路径是否为空或已完成但未到达目标
+        var 当前路径 = 僵尸.getNavigation().getPath();
+        if (当前路径 == null || 当前路径.isDone()) {
+            double 到目标距离 = 僵尸.position().distanceTo(目标位置);
+            // 如果路径完成但距离目标还很远，说明路径不完整
+            return 到目标距离 > 3.0;
+        }
+        
+        return false;
+    }
+    
+    /**
+     * 检查攻击视线是否被方块阻挡
+     * 算法：检查僵尸与目标之间的直线路径上是否有可破坏的阻挡方块
+     */
+    private boolean 检查攻击视线阻挡(Vec3 起点, Vec3 终点) {
         Vec3 方向 = 终点.subtract(起点).normalize();
         double 总距离 = 起点.distanceTo(终点);
         
-        // 沿着视线检查是否有阻挡方块
+        // 沿着攻击视线检查阻挡方块
         for (double d = 1.0; d < 总距离 && d < 8.0; d += 0.5) {
             Vec3 检查点 = 起点.add(方向.scale(d));
-            BlockPos 方块位置 = new BlockPos((int)检查点.x, (int)检查点.y, (int)检查点.z);
             
-            // 检查僵尸眼部高度的方块
-            BlockPos 眼部位置 = 方块位置.offset(0, 1, 0);
-            BlockState 方块状态 = 世界.getBlockState(眼部位置);
-            
-            if (!方块状态.isAir() && 方块状态.isCollisionShapeFullBlock(世界, 眼部位置)) {
-                return true;
+            // 检查僵尸身体高度和眼部高度的方块
+            for (int y偏移 = 0; y偏移 <= 1; y偏移++) {
+                BlockPos 检查位置 = new BlockPos((int)检查点.x, (int)检查点.y + y偏移, (int)检查点.z);
+                BlockState 方块状态 = 世界.getBlockState(检查位置);
+                
+                // 如果发现可破坏的阻挡方块，返回true
+                if (!方块状态.isAir() && 
+                    方块状态.isCollisionShapeFullBlock(世界, 检查位置) && 
+                    是否可破坏方块(方块状态.getBlock())) {
+                    return true;
+                }
             }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * 检查路径进展是否缓慢
+     * 算法：监测僵尸在一定时间内的移动距离
+     */
+    private boolean 检查路径进展缓慢() {
+        // 如果僵尸长时间停留在同一位置且有目标，可能需要破坏阻挡
+        if (僵尸.getNavigation().isStuck()) {
+            return true;
+        }
+        
+        // 检查是否有路径但移动速度很慢
+        var 当前路径 = 僵尸.getNavigation().getPath();
+        if (当前路径 != null && !当前路径.isDone()) {
+            // 如果路径存在但僵尸移动很慢，可能有部分阻挡
+            double 移动速度 = 僵尸.getDeltaMovement().length();
+            return 移动速度 < 0.1; // 移动速度过慢
         }
         
         return false;
